@@ -11,6 +11,7 @@ app.set('views', 'views');
 
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
+const notFoundPage = require('./controllers/errorPage');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -20,9 +21,6 @@ app.use(express.static('public'));
 
 app.use(adminRoutes);
 app.use(userRoutes);
-app.use((req, res, next) => {
-  res.render('404-page', { pageTitle: 'Page Not Found ' });
-  // res.sendFile(path.join(rootDir, 'views', '404-page.html'));
-});
+app.use(notFoundPage.pageNotFound);
 
 app.listen(3000);
