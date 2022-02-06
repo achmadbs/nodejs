@@ -13,3 +13,13 @@ exports.postNewProduct = (req, res, next) => {
   product.save();
   res.redirect('/');
 };
+
+exports.getProducts = (req, res, next) => {
+  Product.fetchProducts((product) => {
+    res.render('admin/products', {
+      prods: product,
+      pageTitle: 'Admin Products',
+      path: '/admin/products',
+    });
+  });
+};

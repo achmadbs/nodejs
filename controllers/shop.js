@@ -5,7 +5,7 @@ exports.getAllProductsData = (req, res, next) => {
     res.render('shop/product-list', {
       prods: product,
       pageTitle: 'All Product',
-      path: '/',
+      path: '/products',
     });
   });
   // sendFile for rendering static html
@@ -14,7 +14,7 @@ exports.getAllProductsData = (req, res, next) => {
 
 exports.getIndex = (req, res, next) => {
   Product.fetchProducts((product) => {
-    res.render('shop/product-list', {
+    res.render('shop/index', {
       prods: product,
       pageTitle: 'All Product',
       path: '/',
