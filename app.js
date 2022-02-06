@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 // for static files like css/assets
 app.use(express.static('public'));
 
-app.use(adminRoutes);
+app.use('/admin', adminRoutes);
 app.use(userRoutes);
 app.use(notFoundPage.pageNotFound);
 

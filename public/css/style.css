@@ -55,7 +55,7 @@ main {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
-  align-items: stretch;
+  row-gap: 1rem;
 }
 
 .card {
