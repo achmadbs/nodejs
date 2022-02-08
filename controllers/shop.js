@@ -12,6 +12,17 @@ exports.getAllProductsData = (req, res, next) => {
   // res.sendFile(path.join(rootDir, 'views', 'shop.html'));
 };
 
+exports.getProductById = (req, res, next) => {
+  const productId = req.params.productId;
+  Product.findProductById(productId, (product) => {
+    res.render('shop/product-detail', {
+      product,
+      pageTitle: 'Details Product',
+      path: '/products',
+    });
+  });
+};
+
 exports.getIndex = (req, res, next) => {
   Product.fetchProducts((product) => {
     res.render('shop/index', {
