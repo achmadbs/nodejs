@@ -23,4 +23,4 @@ app.use('/admin', adminRoutes);
 app.use(userRoutes);
 app.use(notFoundPage.pageNotFound);
 
-app.listen(3000);
+app.listen(3001);
