@@ -2,13 +2,15 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getAllProductsData = (req, res, next) => {
-  Product.fetchProducts((product) => {
-    res.render('shop/product-list', {
-      prods: product,
-      pageTitle: 'All Product',
-      path: '/products',
-    });
-  });
+  Product.fetchProducts()
+    .then(([items]) => {
+      res.render('shop/product-list', {
+        prods: items,
+        pageTitle: 'All Product',
+        path: '/products',
+      });
+    })
+    .catch((err) => console.log(err));
   // sendFile for rendering static html
   // res.sendFile(path.join(rootDir, 'views', 'shop.html'));
 };
@@ -25,13 +27,15 @@ exports.getProductById = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchProducts((product) => {
-    res.render('shop/index', {
-      prods: product,
-      pageTitle: 'All Product',
-      path: '/',
-    });
-  });
+  Product.fetchProducts()
+    .then(([items]) => {
+      res.render('shop/index', {
+        prods: items,
+        pageTitle: 'All Product',
+        path: '/',
+      });
+    })
+    .catch((err) => console.log(err));
 };
 
 exports.getCart = (req, res, next) => {

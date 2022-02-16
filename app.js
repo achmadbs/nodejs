@@ -12,6 +12,7 @@ app.set('views', 'views');
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
 const notFoundPage = require('./controllers/errorPage');
+const db = require('./utils/database');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
