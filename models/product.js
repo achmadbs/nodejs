@@ -10,17 +10,19 @@ module.exports = class Product {
     this.description = description;
   }
 
-  save() {}
+  save() {
+    return db.execute(
+      'INSERT INTO products (productTitle, price, description, imageUrl) VALUES (?, ?, ?, ?)',
+      [this.productTitle, this.price, this.description, this.imageUrl]
+    );
+  }
 
   static fetchProducts() {
     return db.execute('SELECT * FROM products');
   }
 
-  static findProductById(id, callback) {
-    getProductFromFile((products) => {
-      const product = products.find((p) => p.id === id);
-      callback(product);
-    });
+  static findProductById(id) {
+    return db.execute('SELECT * FROM products WHERE products.id = ?', [id]);
   }
 
   static deleteProduct(id) {}
