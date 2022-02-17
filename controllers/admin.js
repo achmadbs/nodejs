@@ -11,50 +11,46 @@ exports.getAddProductsPage = (req, res, next) => {
 
 exports.postNewProduct = (req, res, next) => {
   const { title, imageUrl, price, description } = req.body;
-  const product = new Product(null, title, imageUrl, price, description);
-  product
-    .save()
-    .then(() => res.redirect('/'))
-    .catch((err) => {
-      console.log(err);
-    });
+  Product.create({ productTitle: title, imageUrl, price, description })
+    .then((response) => console.log(response))
+    .catch((err) => console.log(err));
 };
 
 exports.getEditProductsPage = (req, res, next) => {
   const editMode = req.query.edit;
   if (!editMode) return res.redirect('/');
   const prodId = req.params.productId;
-  Product.findProductById(prodId, (product) => {
-    res.render('admin/edit-product', {
-      pageTitle: 'Edit Product',
-      path: '/admin/edit-product',
-      isEditing: editMode,
-      product: product,
-    });
-  });
+  Product.findByPk(prodId)
+    .then((product) => {
+      res.render('admin/edit-product', {
+        pageTitle: 'Edit Product',
+        path: '/admin/edit-product',
+        isEditing: editMode,
+        product: product,
+      });
+    })
+    .catch((error) => console.log(error));
   // res.sendFile(path.join(rootDir, 'views', 'add-product.html')); <-- old way
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchProducts((product) => {
-    res.render('admin/products', {
-      prods: product,
-      pageTitle: 'Admin Products',
-      path: '/admin/products',
-    });
-  });
+  Product.findAll()
+    .then((product) => {
+      res.render('admin/products', {
+        prods: product,
+        pageTitle: 'Admin Products',
+        path: '/admin/products',
+      });
+    })
+    .catch((error) => console.log(error));
 };
 
 exports.updatedProduct = (req, res, next) => {
   const { productId, title, imageUrl, price, description } = req.body;
-  const updatedProduct = new Product(
-    productId,
-    title,
-    imageUrl,
-    price,
-    description
+  Product.update(
+    { productTitle: title, imageUrl, price, description },
+    { where: { id: productId } }
   );
-  updatedProduct.save();
   res.redirect('/admin/products');
 };
 

@@ -24,6 +24,6 @@ app.use('/admin', adminRoutes);
 app.use(userRoutes);
 app.use(notFoundPage.pageNotFound);
 
-sequelize.sync().then((result) => console.log(result));
+sequelize.sync().then((response) => console.log('success'));
 
 app.listen(3001);
