@@ -11,8 +11,17 @@ exports.getAddProductsPage = (req, res, next) => {
 
 exports.postNewProduct = (req, res, next) => {
   const { title, imageUrl, price, description } = req.body;
-  Product.create({ productTitle: title, imageUrl, price, description })
-    .then((response) => console.log(response))
+  Product.create({
+    productTitle: title,
+    imageUrl,
+    price,
+    description,
+    userId: req.user,
+  })
+    .then((response) => {
+      console.log(response);
+      res.redirect('/admin/products');
+    })
     .catch((err) => console.log(err));
 };
 
@@ -50,11 +59,13 @@ exports.updatedProduct = (req, res, next) => {
   Product.update(
     { productTitle: title, imageUrl, price, description },
     { where: { id: productId } }
-  );
-  res.redirect('/admin/products');
+  ).then(() => {
+    res.redirect('/admin/products');
+  });
 };
 
 exports.deleteProduct = (req, res, next) => {
-  Product.deleteProduct(req.body.productId);
-  res.redirect('/admin/products');
+  Product.destroy({ where: { id: req.body.productId } }).then(() => {
+    res.redirect('/admin/products');
+  });
 };

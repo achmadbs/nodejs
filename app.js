@@ -14,6 +14,9 @@ const userRoutes = require('./routes/user');
 const notFoundPage = require('./controllers/errorPage');
 const sequelize = require('./utils/database');
 
+const Product = require('./models/product');
+const User = require('./models/user');
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -23,7 +26,33 @@ app.use(express.static('public'));
 app.use('/admin', adminRoutes);
 app.use(userRoutes);
 app.use(notFoundPage.pageNotFound);
+app.use((req, res, next) => {
+  User.findByPk(1)
+    .then((user) => {
+      req.user = user;
+      next();
+    })
+    .catch((err) => console.log(err));
+});
 
-sequelize.sync().then((response) => console.log('success'));
+Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
+User.hasMany(Product);
 
-app.listen(3001);
+// use
+// authenticate instead
+// if we need to wipe and recreate table
+// sequelize.sync({ force: true }).then((response) => console.log('success'));
+
+sequelize
+  .sync()
+  .then((response) => {
+    console.log('success');
+    app.listen(3001);
+    return User.findByPk(1).then((user) => {
+      if (!user) {
+        return User.create({ name: 'Achmad', email: 'test@test.com' });
+      }
+      return user;
+    });
+  })
+  .catch((err) => console.log(err));
