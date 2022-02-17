@@ -12,7 +12,7 @@ app.set('views', 'views');
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
 const notFoundPage = require('./controllers/errorPage');
-const db = require('./utils/database');
+const sequelize = require('./utils/database');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -23,5 +23,7 @@ app.use(express.static('public'));
 app.use('/admin', adminRoutes);
 app.use(userRoutes);
 app.use(notFoundPage.pageNotFound);
+
+sequelize.sync().then((result) => console.log(result));
 
 app.listen(3001);
