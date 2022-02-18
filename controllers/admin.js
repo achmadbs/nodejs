@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const User = require('../models/user');
 
 exports.getAddProductsPage = (req, res, next) => {
   res.render('admin/edit-product', {
@@ -6,18 +7,12 @@ exports.getAddProductsPage = (req, res, next) => {
     path: '/admin/add-product',
     isEditing: false,
   });
-  // res.sendFile(path.join(rootDir, 'views', 'add-product.html')); <-- old way
 };
 
 exports.postNewProduct = (req, res, next) => {
   const { title, imageUrl, price, description } = req.body;
-  Product.create({
-    productTitle: title,
-    imageUrl,
-    price,
-    description,
-    userId: req.user,
-  })
+  req.user
+    .createProduct({ productTitle: title, imageUrl, price, description })
     .then((response) => {
       console.log(response);
       res.redirect('/admin/products');
@@ -39,7 +34,6 @@ exports.getEditProductsPage = (req, res, next) => {
       });
     })
     .catch((error) => console.log(error));
-  // res.sendFile(path.join(rootDir, 'views', 'add-product.html')); <-- old way
 };
 
 exports.getProducts = (req, res, next) => {
