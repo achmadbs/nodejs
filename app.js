@@ -14,6 +14,8 @@ app.set('views', 'views');
 
 const Product = require('./models/product');
 const User = require('./models/user');
+const Cart = require('./models/cart');
+const CartItem = require('./models/cartItem');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -39,6 +41,10 @@ Product.belongsTo(User, {
   onDelete: 'CASCADE',
 });
 User.hasMany(Product);
+User.hasOne(Cart);
+Cart.belongsTo(User);
+Cart.belongsToMany(Product, { through: CartItem });
+Product.belongsToMany(Cart, { through: CartItem });
 
 // use
 // authenticate instead
