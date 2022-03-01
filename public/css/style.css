@@ -197,6 +197,11 @@ form {
   color: white;
 }
 
+.list-cart {
+  display: flex;
+  border: 1px solid red;
+}
+
 @media (min-width: 768px) {
   .main-header__nav {
     display: flex;
