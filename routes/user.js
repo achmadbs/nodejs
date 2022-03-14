@@ -9,16 +9,16 @@ router.get('/products', shopContoller.getAllProductsData);
 
 router.get('/products/:productId', shopContoller.getProductById);
 
-router.get('/cart', shopContoller.getCart);
+// router.get('/cart', shopContoller.getCart);
 
-router.post('/cart', shopContoller.postCart);
+// router.post('/cart', shopContoller.postCart);
 
-router.post('/cart-delete-item', shopContoller.postCartDelete);
+// router.post('/cart-delete-item', shopContoller.postCartDelete);
 
-router.post('/create-order', shopContoller.postOrder);
+// router.post('/create-order', shopContoller.postOrder);
 
-router.get('/orders', shopContoller.getOrders);
+// router.get('/orders', shopContoller.getOrders);
 
-router.get('/checkout', shopContoller.getCheckout);
+// router.get('/checkout', shopContoller.getCheckout);
 
 module.exports = router;
