@@ -2,9 +2,11 @@ const { getDb } = require('../utils/database');
 const ObjectID = require('bson-objectid');
 
 class User {
-  constructor(username, email) {
+  constructor(username, email, cart, id) {
     this.username = username;
     this.email = email;
+    this.cart = cart;
+    this._id = id;
   }
 
   async save() {
@@ -17,10 +19,26 @@ class User {
     }
   }
 
+  async addToCart(product) {
+    const db = getDb();
+    try {
+      const updatedCart = { items: [{ ...product, quantity: 1 }] };
+      const result = await db
+        .collection('users')
+        .updateOne(
+          { _id: ObjectID(this._id) },
+          { $set: { cart: updatedCart } }
+        );
+      return result;
+    } catch (error) {}
+  }
+
   static async findById(userId) {
     const db = getDb();
     try {
-      const user = await db.collection('users').find({ _id: ObjectID(userId) });
+      const user = await db
+        .collection('users')
+        .findOne({ _id: ObjectID(userId) });
       return user;
     } catch (error) {
       console.log(error);

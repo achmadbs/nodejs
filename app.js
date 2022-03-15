@@ -4,6 +4,7 @@ const app = express();
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
 const notFoundPage = require('./controllers/errorPage');
+const User = require('./models/user');
 const { mongoConnect } = require('./utils/database');
 
 // set the templating engines
@@ -19,7 +20,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 app.use((req, res, next) => {
-  next();
+  User.findById('623067368ed1f8a20cf5dbe0')
+    .then((user) => {
+      req.user = user;
+      next();
+    })
+    .catch((error) => console.log(error));
 });
 
 app.use('/admin', adminRoutes);

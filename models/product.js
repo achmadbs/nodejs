@@ -2,12 +2,13 @@ const { getDb } = require('../utils/database');
 const ObjectID = require('bson-objectid');
 
 class Product {
-  constructor(productTitle, price, image, description, id) {
+  constructor(productTitle, price, image, description, id, userId) {
     this.productTitle = productTitle;
     this.price = price;
     this.image = image;
     this.description = description;
     this._id = id ? ObjectID(id) : null;
+    this.userId = userId;
   }
 
   async save() {
