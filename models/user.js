@@ -87,6 +87,45 @@ class User {
     }
   }
 
+  async addOrder() {
+    const db = getDb();
+    const payload = {
+      items: await this.getCart(),
+      user: {
+        _id: this._id,
+        name: this.username,
+      },
+    };
+    try {
+      await Promise.all([
+        db.collection('orders').insertOne(payload),
+        db
+          .collection('users')
+          .updateOne(
+            { _id: ObjectID(this._id) },
+            { $set: { cart: { items: [] } } }
+          ),
+      ]);
+      this.cart.items = [];
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async getOrders() {
+    const db = getDb();
+    try {
+      // check nested Object with string literal
+      const listOrders = await db
+        .collection('orders')
+        .find({ 'user._id': ObjectID(this._id) })
+        .toArray();
+      return listOrders;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   static async findById(userId) {
     const db = getDb();
     try {
