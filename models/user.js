@@ -1,142 +1,208 @@
-const { getDb } = require('../utils/database');
-const ObjectID = require('bson-objectid');
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
-class User {
-  constructor(username, email, cart, id) {
-    this.username = username;
-    this.email = email;
-    this.cart = cart;
-    this._id = id;
-  }
-
-  async save() {
-    const db = getDb();
-    try {
-      const result = await db.collection('users').insertOne(this);
-      return result;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async addToCart(product) {
-    const db = getDb();
-    let newQuantity = 1;
-    const currentCart = [...this.cart.items];
-    const cartProductIndex = this.cart.items.findIndex(
-      (cp) => String(cp.productId) === String(product._id)
-    );
-    if (cartProductIndex >= 0) {
-      newQuantity = this.cart.items[cartProductIndex].quantity + 1;
-      currentCart[cartProductIndex].quantity = newQuantity;
-    } else {
-      currentCart.push({
-        productId: ObjectID(product._id),
-        quantity: newQuantity,
-      });
-    }
-    try {
-      const updatedCart = {
-        items: currentCart,
-      };
-      const result = await db
-        .collection('users')
-        .updateOne(
-          { _id: ObjectID(this._id) },
-          { $set: { cart: updatedCart } }
-        );
-      return result;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async getCart() {
-    const db = getDb();
-    const productIds = this.cart.items?.map((product) => product.productId);
-    try {
-      const cartItems = await db
-        .collection('products')
-        .find({ _id: { $in: productIds } })
-        .toArray();
-      return cartItems.map((value) => ({
-        ...value,
-        quantity: this.cart.items.find(
-          (prod) => prod.productId.toString() === value._id.toString()
-        ).quantity,
-      }));
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async deleteCart(userId, productCartId) {
-    const db = getDb();
-    try {
-      const updatedCart = {
-        items: this.cart.items.filter(
-          (items) => items.productId.toString() !== productCartId
-        ),
-      };
-      const response = await db
-        .collection('users')
-        .updateOne({ _id: ObjectID(userId) }, { $set: { cart: updatedCart } });
-      return response;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async addOrder() {
-    const db = getDb();
-    const payload = {
-      items: await this.getCart(),
-      user: {
-        _id: this._id,
-        name: this.username,
+const userSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
+  cart: {
+    items: [
+      {
+        productId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Product',
+          required: true,
+        },
+        quantity: { type: Number, required: true },
       },
+    ],
+  },
+});
+
+userSchema.methods.addToCart = function (product) {
+  let newQuantity = 1;
+  const currentCart = [...this.cart.items];
+  const cartProductIndex = this.cart.items.findIndex(
+    (cp) => String(cp.productId) === String(product._id)
+  );
+  if (cartProductIndex >= 0) {
+    newQuantity = this.cart.items[cartProductIndex].quantity + 1;
+    currentCart[cartProductIndex].quantity = newQuantity;
+  } else {
+    currentCart.push({
+      productId: product._id,
+      quantity: newQuantity,
+    });
+  }
+  try {
+    const updatedCart = {
+      items: currentCart,
     };
-    try {
-      await Promise.all([
-        db.collection('orders').insertOne(payload),
-        db
-          .collection('users')
-          .updateOne(
-            { _id: ObjectID(this._id) },
-            { $set: { cart: { items: [] } } }
-          ),
-      ]);
-      this.cart.items = [];
-    } catch (error) {
-      console.log(error);
-    }
+    this.cart = updatedCart;
+    return this.save();
+  } catch (error) {
+    console.log(error);
   }
+};
 
-  async getOrders() {
-    const db = getDb();
-    try {
-      // check nested Object with string literal
-      const listOrders = await db
-        .collection('orders')
-        .find({ 'user._id': ObjectID(this._id) })
-        .toArray();
-      return listOrders;
-    } catch (error) {
-      console.log(error);
-    }
+userSchema.methods.deleteCart = function (productId) {
+  try {
+    const filteredCart = this.cart.items.filter((products) => {
+      products.productId.toString() !== productId.toString();
+    });
+    this.cart.items = filteredCart;
+    return this.save();
+  } catch (error) {
+    console.log(error);
   }
+};
 
-  static async findById(userId) {
-    const db = getDb();
-    try {
-      const user = await db
-        .collection('users')
-        .findOne({ _id: ObjectID(userId) });
-      return user;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-}
+module.exports = mongoose.model('User', userSchema);
 
-module.exports = User;
+// const { getDb } = require('../utils/database');
+// const ObjectID = require('bson-objectid');
+
+// class User {
+//   constructor(username, email, cart, id) {
+//     this.username = username;
+//     this.email = email;
+//     this.cart = cart;
+//     this._id = id;
+//   }
+
+//   async save() {
+//     const db = getDb();
+//     try {
+//       const result = await db.collection('users').insertOne(this);
+//       return result;
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   }
+
+//   async addToCart(product) {
+//     const db = getDb();
+//     let newQuantity = 1;
+//     const currentCart = [...this.cart.items];
+//     const cartProductIndex = this.cart.items.findIndex(
+//       (cp) => String(cp.productId) === String(product._id)
+//     );
+//     if (cartProductIndex >= 0) {
+//       newQuantity = this.cart.items[cartProductIndex].quantity + 1;
+//       currentCart[cartProductIndex].quantity = newQuantity;
+//     } else {
+//       currentCart.push({
+//         productId: ObjectID(product._id),
+//         quantity: newQuantity,
+//       });
+//     }
+//     try {
+//       const updatedCart = {
+//         items: currentCart,
+//       };
+//       const result = await db
+//         .collection('users')
+//         .updateOne(
+//           { _id: ObjectID(this._id) },
+//           { $set: { cart: updatedCart } }
+//         );
+//       return result;
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   }
+
+//   async getCart() {
+//     const db = getDb();
+//     const productIds = this.cart.items?.map((product) => product.productId);
+//     try {
+//       const cartItems = await db
+//         .collection('products')
+//         .find({ _id: { $in: productIds } })
+//         .toArray();
+//       return cartItems.map((value) => ({
+//         ...value,
+//         quantity: this.cart.items.find(
+//           (prod) => prod.productId.toString() === value._id.toString()
+//         ).quantity,
+//       }));
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   }
+
+//   async deleteCart(userId, productCartId) {
+//     const db = getDb();
+//     try {
+//       const updatedCart = {
+//         items: this.cart.items.filter(
+//           (items) => items.productId.toString() !== productCartId
+//         ),
+//       };
+//       const response = await db
+//         .collection('users')
+//         .updateOne({ _id: ObjectID(userId) }, { $set: { cart: updatedCart } });
+//       return response;
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   }
+
+//   async addOrder() {
+//     const db = getDb();
+//     const payload = {
+//       items: await this.getCart(),
+//       user: {
+//         _id: this._id,
+//         name: this.username,
+//       },
+//     };
+//     try {
+//       await Promise.all([
+//         db.collection('orders').insertOne(payload),
+//         db
+//           .collection('users')
+//           .updateOne(
+//             { _id: ObjectID(this._id) },
+//             { $set: { cart: { items: [] } } }
+//           ),
+//       ]);
+//       this.cart.items = [];
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   }
+
+//   async getOrders() {
+//     const db = getDb();
+//     try {
+//       // check nested Object with string literal
+//       const listOrders = await db
+//         .collection('orders')
+//         .find({ 'user._id': ObjectID(this._id) })
+//         .toArray();
+//       return listOrders;
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   }
+
+//   static async findById(userId) {
+//     const db = getDb();
+//     try {
+//       const user = await db
+//         .collection('users')
+//         .findOne({ _id: ObjectID(userId) });
+//       return user;
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   }
+// }
+
+// module.exports = User;

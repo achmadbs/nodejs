@@ -1,11 +1,11 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const app = express();
 
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
 const notFoundPage = require('./controllers/errorPage');
 const User = require('./models/user');
-const { mongoConnect } = require('./utils/database');
 
 // set the templating engines
 app.set('view engine', 'ejs');
@@ -20,9 +20,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 app.use((req, res, next) => {
-  User.findById('623067368ed1f8a20cf5dbe0')
+  User.findById('6239bf9243f0621ee894ce36')
     .then((user) => {
-      req.user = new User(user.username, user.email, user.cart, user._id);
+      req.user = user;
       next();
     })
     .catch((error) => console.log(error));
@@ -37,6 +37,23 @@ app.use(notFoundPage.pageNotFound);
 // if we need to wipe and recreate table
 // sequelize.sync({ force: true }).then((response) => console.log('success'));
 
-mongoConnect(() => {
-  app.listen(3001);
-});
+mongoose
+  .connect(
+    'mongodb+srv://achmad:reactjs123@cluster0.dkl5x.mongodb.net/shop-udemy?retryWrites=true&w=majority',
+    { useNewUrlParser: true }
+  )
+  .then(() => {
+    User.findOne().then((user) => {
+      if (!user) {
+        const user = new User({
+          name: 'Achmad',
+          email: 'achmadbdrdn@gmail.com',
+          cart: { items: [] },
+        });
+        user.save();
+      }
+    });
+    app.listen(3001);
+    console.log('running');
+  })
+  .catch((err) => console.log(err));

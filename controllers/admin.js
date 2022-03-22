@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const ObjectID = require('bson-objectid');
 
 exports.getAddProductsPage = (req, res, next) => {
   res.render('admin/edit-product', {
@@ -10,14 +11,13 @@ exports.getAddProductsPage = (req, res, next) => {
 
 exports.postNewProduct = (req, res, next) => {
   const { title, imageUrl, price, description } = req.body;
-  const product = new Product(
-    title,
+  const product = new Product({
+    productTitle: title,
     price,
-    imageUrl,
     description,
-    null,
-    req.user._id
-  );
+    imageUrl,
+    userId: req.user._id,
+  });
   product
     .save()
     .then((result) => {
@@ -26,20 +26,13 @@ exports.postNewProduct = (req, res, next) => {
     .catch((err) => {
       console.log(err);
     });
-  // req.user
-  //   .createProduct({ productTitle: title, imageUrl, price, description })
-  //   .then((response) => {
-  //     console.log(response);
-  //     res.redirect('/admin/products');
-  //   })
-  //   .catch((err) => console.log(err));
 };
 
 exports.getEditProductsPage = (req, res, next) => {
   const editMode = req.query.edit;
   if (!editMode) return res.redirect('/');
   const prodId = req.params.productId;
-  Product.findProductById(prodId)
+  Product.findById(prodId)
     .then((product) => {
       res.render('admin/edit-product', {
         pageTitle: 'Edit Product',
@@ -52,7 +45,7 @@ exports.getEditProductsPage = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((product) => {
       res.render('admin/products', {
         prods: product,
@@ -63,19 +56,31 @@ exports.getProducts = (req, res, next) => {
     .catch((error) => console.log(error));
 };
 
-exports.updateProduct = (req, res, next) => {
+exports.updateProduct = async (req, res, next) => {
   const { productId, title, imageUrl, price, description } = req.body;
-  const product = new Product(title, price, imageUrl, description, productId);
-  product
-    .save()
-    .then(() => {
-      res.redirect('/admin/products');
-    })
-    .catch((err) => console.log(err));
+  try {
+    const response = await Product.findOneAndUpdate(
+      { _id: ObjectID(productId) },
+      {
+        productTitle: title,
+        price,
+        description,
+        imageUrl,
+      },
+      { new: true }
+    );
+    res.redirect('/admin/products');
+    return response;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-exports.deleteProduct = (req, res, next) => {
-  Product.deleteProductById(req.body.productId).then(() => {
-    res.redirect('/admin/products');
-  });
+exports.deleteProduct = async (req, res, next) => {
+  try {
+    const response = await Product.findByIdAndDelete(req.body.productId);
+    return response;
+  } catch (error) {
+    console.log(error);
+  }
 };

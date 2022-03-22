@@ -1,7 +1,7 @@
 const Product = require('../models/product');
 
 exports.getAllProductsData = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((response) => {
       res.render('shop/product-list', {
         prods: response,
@@ -18,7 +18,7 @@ exports.getAllProductsData = (req, res, next) => {
 
 exports.getProductById = (req, res, next) => {
   const productId = req.params.productId;
-  Product.findProductById(productId)
+  Product.findById(productId)
     .then((response) => {
       res.render('shop/product-detail', {
         product: response,
@@ -30,7 +30,7 @@ exports.getProductById = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((response) => {
       res.render('shop/index', {
         prods: response,
@@ -44,7 +44,7 @@ exports.getIndex = (req, res, next) => {
 exports.postCart = async (req, res, next) => {
   const prodId = req.body.productId;
   try {
-    const product = await Product.findProductById(prodId);
+    const product = await Product.findById(prodId);
     await req.user.addToCart(product);
     res.redirect('/cart');
   } catch (error) {
@@ -55,7 +55,7 @@ exports.postCart = async (req, res, next) => {
 exports.postCartDelete = async (req, res, next) => {
   const prodId = req.body.productId;
   try {
-    await req.user.deleteCart(req.user._id, prodId);
+    await req.user.deleteCart(prodId);
     res.redirect('/cart');
   } catch (error) {
     console.trace(error);
@@ -65,7 +65,6 @@ exports.postCartDelete = async (req, res, next) => {
 exports.getOrders = async (req, res, next) => {
   try {
     const usersOrder = await req.user.getOrders();
-    console.log(usersOrder);
     res.render('shop/orders', {
       pageTitle: 'Orders',
       path: '/orders',
@@ -88,11 +87,12 @@ exports.getOrders = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    const result = await req.user.getCart();
+    const result = await req.user.populate('cart.items.productId');
+    console.log(result.cart.items);
     res.render('shop/cart', {
       pageTitle: 'Cart',
       path: '/cart',
-      cartItems: result,
+      cartItems: result.cart.items,
     });
   } catch (error) {
     console.log(error);
